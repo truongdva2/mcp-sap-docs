@@ -24,7 +24,7 @@ export async function loadEmbeddingModel(cacheDir?: string): Promise<void> {
   const dir = cacheDir ?? CONFIG.MODELS_DIR;
 
   modelLoadPromise = (async () => {
-    console.log(`🤖 Pre-loading embedding model (cache: ${dir})...`);
+    console.error(`🤖 Pre-loading embedding model (cache: ${dir})...`);
     const { pipeline, env } = await import("@huggingface/transformers");
     env.cacheDir = dir;
     const pipe = await pipeline("feature-extraction", "Xenova/all-MiniLM-L6-v2", {
@@ -33,7 +33,7 @@ export async function loadEmbeddingModel(cacheDir?: string): Promise<void> {
     });
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     extractor = pipe as unknown as ((input: string, options?: Record<string, unknown>) => Promise<any>);
-    console.log(`✅ Embedding model ready.`);
+    console.error(`✅ Embedding model ready.`);
   })();
 
   return modelLoadPromise;

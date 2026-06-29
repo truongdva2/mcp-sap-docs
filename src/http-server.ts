@@ -327,6 +327,6 @@ const server = createServer(async (req, res) => {
   const PORT = Number(process.env.PORT || variant.server.httpStatusPort);
   // Bind to 127.0.0.1 to keep local-only
   server.listen(PORT, "127.0.0.1", () => {
-    console.log(`📚 HTTP server running on http://127.0.0.1:${PORT} (status: /status, health: /healthz, ready: /readyz)`);
+    console.error(`📚 HTTP server running on http://127.0.0.1:${PORT} (status: /status, health: /healthz, ready: /readyz)`);
   });
 })();

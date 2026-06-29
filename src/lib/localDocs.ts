@@ -913,7 +913,7 @@ export async function searchLibraries(query: string, fileContent?: string): Prom
     
     // If FTS found no candidates or failed, fall back to searching everything
     if (candidateDocIds.size === 0) {
-      console.log("FTS found no candidates, falling back to full search");
+      console.error("FTS found no candidates, falling back to full search");
       usedFTS = false;
     }
   } catch (error) {

@@ -806,7 +806,7 @@ export async function prefetchUi5LibDiff(): Promise<void> {
   try {
     const bundle = await readLocalBundle();
     cacheLoadedBundle(bundle);
-    console.log(
+    console.error(
       `✅ [ui5VersionDiff] Loaded local UI5 diff bundle from ${bundle.sourceDataPath} (${bundle.datasets.SAPUI5.length} SAPUI5 versions, ${bundle.datasets.OpenUI5.length} OpenUI5 versions, ${bundle.whatsNew.length} What's New entries)`
     );
   } catch (err) {

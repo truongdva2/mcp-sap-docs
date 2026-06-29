@@ -80,7 +80,7 @@ export function loadMetadata(metaPath?: string): Metadata {
       }
     }
     
-    console.log(`✅ Metadata loaded: ${META.sources.length} sources, ${Object.keys(SYNONYM_MAP).length} synonyms, ${Object.keys(CONTEXT_BOOSTS_NORMALIZED).length} context boosts`);
+    console.error(`✅ Metadata loaded: ${META.sources.length} sources, ${Object.keys(SYNONYM_MAP).length} synonyms, ${Object.keys(CONTEXT_BOOSTS_NORMALIZED).length} context boosts`);
     return META;
   } catch (error) {
     console.warn(`⚠️ Could not load metadata from ${finalPath}, using defaults:`, error);

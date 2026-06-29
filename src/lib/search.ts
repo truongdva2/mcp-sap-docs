@@ -271,7 +271,7 @@ function processOnlineSource(
   }
 
   if (!response?.results || response.results.length === 0) {
-    console.log(`⚠️ [${sourceName}] No results`);
+    console.error(`⚠️ [${sourceName}] No results`);
     return [];
   }
 
@@ -306,7 +306,7 @@ function processOnlineSource(
     };
   });
 
-  console.log(`✅ [${sourceName}] ${results.length} results (boost=${boost.toFixed(2)})`);
+  console.error(`✅ [${sourceName}] ${results.length} results (boost=${boost.toFixed(2)})`);
   return results;
 }
 
@@ -483,7 +483,7 @@ export async function search(
       return id.includes('/abap-docs-cloud/');
     });
     
-    console.log(`Filtered to ABAP Cloud: ${rows.length} results`);
+    console.error(`Filtered to ABAP Cloud: ${rows.length} results`);
   } else {
     // For standard ABAP queries, show standard (on-premise) ABAP docs
     rows = rows.filter(r => {
@@ -496,7 +496,7 @@ export async function search(
       return id.includes('/abap-docs-standard/');
     });
     
-    console.log(`Filtered to Standard ABAP (on-premise): ${rows.length} results`);
+    console.error(`Filtered to Standard ABAP (on-premise): ${rows.length} results`);
   }
   
   // CRITICAL: Take more candidates BEFORE merging with online results
@@ -659,7 +659,7 @@ export async function search(
   let onlineResults: SearchResult[] = [];
   
   if (includeOnline) {
-    console.log(`🌐 [ONLINE] Starting online searches for "${query}" (${ONLINE_TIMEOUT_MS}ms timeout)...`);
+    console.error(`🌐 [ONLINE] Starting online searches for "${query}" (${ONLINE_TIMEOUT_MS}ms timeout)...`);
     
     const onlineSearches = await Promise.allSettled([
       // SAP Help search with timeout (version filter applies to this source only)
@@ -711,13 +711,13 @@ export async function search(
       ...processOnlineSource(onlineSearches[2], 'Software-Heroes', 'software_heroes', RRF_WEIGHTS.software_heroes, onlineBoost * 0.9)
     );
     
-    console.log(`🌐 [ONLINE] Total: ${onlineResults.length} online results`);
+    console.error(`🌐 [ONLINE] Total: ${onlineResults.length} online results`);
   }
   
   // Merge offline, semantic, and online results
   // Semantic results re-rank BM25 candidates by cosine similarity and slot in via RRF
   const semanticResults = await buildSemanticResults(query, offlineResults, k);
-  console.log(`🧠 [SEMANTIC] ${semanticResults.length} semantic results`);
+  console.error(`🧠 [SEMANTIC] ${semanticResults.length} semantic results`);
 
   const allResults = [...offlineResults, ...onlineResults, ...semanticResults];
   
@@ -761,7 +761,7 @@ export async function search(
     contentDeduped.set(result.id, result);
   }
   
-  console.log(`Deduplication: ${allResults.length} -> ${deduped.size} -> ${contentDeduped.size} unique results (incl. release notes)`);
+  console.error(`Deduplication: ${allResults.length} -> ${deduped.size} -> ${contentDeduped.size} unique results (incl. release notes)`);
   
   // Return top k results
   return Array.from(contentDeduped.values())

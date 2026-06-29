@@ -149,13 +149,13 @@ export async function searchCommunityBestMatch(
   // Per-term subject searches (parallel) -- ensures rare terms surface
   const termSearches = queryTerms.map(term => {
     const url = buildLiqlSearchUrl(term, perTermLimit, true, minKudos);
-    console.log(`[SAP Community] LiQL per-term (subject): term="${term}" minKudos=${minKudos}`);
+    console.error(`[SAP Community] LiQL per-term (subject): term="${term}" minKudos=${minKudos}`);
     return executeLiqlSearch(url, userAgent);
   });
 
   // Full-phrase broad search (subject+body)
   const broadUrl = buildLiqlSearchUrl(query, perTermLimit, false, minKudos);
-  console.log(`[SAP Community] LiQL broad (subject+body): query="${query}" minKudos=${minKudos}`);
+  console.error(`[SAP Community] LiQL broad (subject+body): query="${query}" minKudos=${minKudos}`);
   const broadSearch = executeLiqlSearch(broadUrl, userAgent);
 
   const termResults = await Promise.all(termSearches);
@@ -190,7 +190,7 @@ export async function searchCommunityBestMatch(
   });
 
   const totalFetched = termResults.reduce((s, r) => s + r.length, 0) + broadItems.length;
-  console.log(`[SAP Community] Merged: ${totalFetched} fetched -> ${byId.size} unique, returning top ${limit}`);
+  console.error(`[SAP Community] Merged: ${totalFetched} fetched -> ${byId.size} unique, returning top ${limit}`);
   return mapItemsToHits(scored.slice(0, limit).map(s => s.item));
 }
 

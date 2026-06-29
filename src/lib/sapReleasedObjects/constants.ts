@@ -1,6 +1,13 @@
 import type { CleanCoreLevel, SystemType } from "./types.js";
 
-export const SOURCES_DIR = "sources/abap-atc-cr-cv-s4hc/src";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const PROJECT_ROOT = path.resolve(__dirname, "..", "..", "..");
+
+export const SOURCES_DIR = path.resolve(PROJECT_ROOT, "sources/abap-atc-cr-cv-s4hc/src");
 
 export const SOURCE_FILES: Record<SystemType, string> = {
   public_cloud:  "objectReleaseInfoLatest.json",

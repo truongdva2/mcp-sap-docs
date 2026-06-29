@@ -308,18 +308,18 @@ async function getFeatureMatrix(): Promise<ParsedFeatureMatrix> {
   // 1. In-memory cache (fast path)
   const cached = matrixCache.get(CACHE_KEY);
   if (cached) {
-    console.log("✅ [FeatureMatrix] Using cached matrix");
+    console.error("✅ [FeatureMatrix] Using cached matrix");
     return cached;
   }
 
   // 2. Try live API
   try {
-    console.log("🌐 [FeatureMatrix] Fetching from API...");
+    console.error("🌐 [FeatureMatrix] Fetching from API...");
     const html = await fetchAbapFeatureMatrixHtml();
     const matrix = parseAbapFeatureMatrix(html);
 
     matrixCache.set(CACHE_KEY, matrix);
-    console.log(`✅ [FeatureMatrix] Cached ${countFeatures(matrix)} features across ${matrix.sections.length} sections`);
+    console.error(`✅ [FeatureMatrix] Cached ${countFeatures(matrix)} features across ${matrix.sections.length} sections`);
 
     // Persist to disk (fire-and-forget)
     writeDiskCache(matrix).catch(err =>
@@ -335,7 +335,7 @@ async function getFeatureMatrix(): Promise<ParsedFeatureMatrix> {
   const diskMatrix = await readDiskCache();
   if (diskMatrix) {
     matrixCache.set(CACHE_KEY, diskMatrix);
-    console.log(`📂 [FeatureMatrix] Loaded ${countFeatures(diskMatrix)} features from disk cache`);
+    console.error(`📂 [FeatureMatrix] Loaded ${countFeatures(diskMatrix)} features from disk cache`);
     return diskMatrix;
   }
 
@@ -360,13 +360,13 @@ function countFeatures(matrix: ParsedFeatureMatrix): number {
  */
 export async function prefetchFeatureMatrix(): Promise<void> {
   try {
-    console.log("🚀 [FeatureMatrix] Prefetching matrix at startup...");
+    console.error("🚀 [FeatureMatrix] Prefetching matrix at startup...");
     const html = await fetchAbapFeatureMatrixHtml();
     const matrix = parseAbapFeatureMatrix(html);
 
     matrixCache.set(CACHE_KEY, matrix);
     await writeDiskCache(matrix);
-    console.log(
+    console.error(
       `✅ [FeatureMatrix] Prefetched and persisted ${countFeatures(matrix)} features across ${matrix.sections.length} sections`
     );
     return;
@@ -379,7 +379,7 @@ export async function prefetchFeatureMatrix(): Promise<void> {
     const diskMatrix = await readDiskCache();
     if (diskMatrix) {
       matrixCache.set(CACHE_KEY, diskMatrix);
-      console.log(
+      console.error(
         `📂 [FeatureMatrix] Prefetch loaded ${countFeatures(diskMatrix)} features from disk cache`
       );
     } else {

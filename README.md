@@ -2,14 +2,40 @@
 
 An MCP server that gives AI assistants (Claude, Cursor, ChatGPT, etc.) access to SAP documentation through a unified search and fetch interface. It combines a local full-text + semantic index over git-cloned SAP docs with optional live queries to SAP Help, SAP Community, and Software Heroes — all exposed as MCP tools.
 
-## Public Hosted Endpoint
+## Local Setup & Configuration
 
-> **Ready to use — no setup required**
->
-> | Variant | URL |
-> |---------|-----|
-> | SAP Docs | `http://mcp-sap-docs.marianzeis.de/mcp` |
-> | ABAP | `https://mcp-abap.marianzeis.de/mcp` |
+This project is optimized for local execution via the `stdio` transport. By running the server locally on your own machine, you get instant responses, no "cold start" sleep periods, and your API keys stay securely on your computer.
+
+### 1. Installation & Build
+
+```bash
+git clone https://github.com/truongdva2/mcp-sap-docs.git
+cd mcp-sap-docs
+npm install
+npm run build
+```
+
+### 2. Configure your MCP Client (Claude Desktop, Cursor, Gemini IDE)
+
+Add the following to your MCP client's configuration file (e.g., `mcp_config.json` or `claude_desktop_config.json`). Make sure to replace `/PATH/TO/mcp-sap-docs` with the absolute path on your machine where you cloned the repository.
+
+```json
+{
+  "mcpServers": {
+    "mcp-sap-docs-local": {
+      "command": "node",
+      "args": [
+        "/PATH/TO/mcp-sap-docs/dist/src/server.js"
+      ],
+      "env": {
+        "SAP_API_HUB_KEY": "your_api_key_here"
+      }
+    }
+  }
+}
+```
+
+*Note: You can obtain your `SAP_API_HUB_KEY` by logging into the [SAP Business Accelerator Hub](https://api.sap.com/) and navigating to your profile settings.*
 
 ## Variants
 
@@ -71,6 +97,10 @@ An MCP server that gives AI assistants (Claude, Cursor, ChatGPT, etc.) access to
 |------|-------------|
 | `sap_discovery_center_search` | Search the SAP Discovery Center service catalog for BTP services by keyword, category, or license model. |
 | `sap_discovery_center_service` | Get comprehensive BTP service details: pricing plans, product roadmap, documentation links, and key features. Accepts a service UUID or name. |
+| `sap_accelerator_hub_search` | Search the SAP Business Accelerator Hub for standard SAP APIs, Events, and Integrations. |
+| `sap_accelerator_hub_fetch` | Fetch full detailed metadata for a specific SAP Accelerator Hub artifact by ID. |
+| `sap_fiori_library_search` | Search the SAP Fiori App Reference Library by App ID or App Name. |
+| `sap_fiori_library_fetch` | Fetch detailed configuration and documentation for a specific SAP Fiori App. |
 | `ui5_version_diff` | List all matching FEATURE / FIX / DEPRECATED changes and SAPUI5 What's New entries for a version or range from a local all-changes bundle (`dist/data/ui5-lib-diff/all-changes.json`). `npm run setup` refreshes it automatically; use `npm run download:ui5-lib-diff` during setup/rebuild for a manual refresh. Pair with the [`ui5-version-upgrade` skill](.claude/skills/ui5-version-upgrade/SKILL.md) and `@ui5/mcp-server` for a full upgrade workflow. |
 
 ### `abap` variant only

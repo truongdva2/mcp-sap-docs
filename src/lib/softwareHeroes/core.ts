@@ -205,11 +205,11 @@ export async function callSoftwareHeroesApi(
   const cacheKey = buildCacheKey(method, dataParams);
   const cachedResponse = softwareHeroesCache.get(cacheKey);
   if (cachedResponse) {
-    console.log(`📦 [SoftwareHeroes] Cache hit for key: ${cacheKey.substring(0, 60)}...`);
+    console.error(`📦 [SoftwareHeroes] Cache hit for key: ${cacheKey.substring(0, 60)}...`);
     return cachedResponse;
   }
 
-  console.log(`🌐 [SoftwareHeroes] Fetching from API (cache miss): ${cacheKey.substring(0, 60)}...`);
+  console.error(`🌐 [SoftwareHeroes] Fetching from API (cache miss): ${cacheKey.substring(0, 60)}...`);
 
   // Build form body
   const formBody = new URLSearchParams();
@@ -245,7 +245,7 @@ export async function callSoftwareHeroesApi(
     // Cache successful responses
     if (data.status) {
       softwareHeroesCache.set(cacheKey, data);
-      console.log(`✅ [SoftwareHeroes] Cached response (TTL: ${CONFIG.SOFTWARE_HEROES_CACHE_TTL_MS / 1000 / 60 / 60}h)`);
+      console.error(`✅ [SoftwareHeroes] Cached response (TTL: ${CONFIG.SOFTWARE_HEROES_CACHE_TTL_MS / 1000 / 60 / 60}h)`);
     }
 
     return data;

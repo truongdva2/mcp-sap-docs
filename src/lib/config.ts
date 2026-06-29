@@ -1,4 +1,10 @@
 import { getVariantConfig } from "./variant.js";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const PROJECT_ROOT = path.resolve(__dirname, "..", "..", "..");
 
 const variant = getVariantConfig();
 
@@ -8,8 +14,8 @@ export const CONFIG = {
   RETURN_K: Number(process.env.RETURN_K || 50),
   
   // Database paths
-  DB_PATH: "dist/data/docs.sqlite",
-  METADATA_PATH: process.env.METADATA_PATH || variant.metadataPath || "src/metadata.json",
+  DB_PATH: path.resolve(PROJECT_ROOT, "dist/data/docs.sqlite"),
+  METADATA_PATH: process.env.METADATA_PATH || (variant.metadataPath ? path.resolve(PROJECT_ROOT, variant.metadataPath) : path.resolve(PROJECT_ROOT, "src/metadata.json")),
   
   // Search behavior
   USE_OR_LOGIC: true, // Use OR logic for better recall in BM25-only mode
@@ -37,7 +43,7 @@ export const CONFIG = {
   SOFTWARE_HEROES_CACHE_TTL_MS: Number(process.env.SOFTWARE_HEROES_CACHE_TTL_MS || 86400000),
 
   // Disk cache path for the ABAP Feature Matrix (survives server restarts)
-  SOFTWARE_HEROES_AFM_CACHE_PATH: process.env.SOFTWARE_HEROES_AFM_CACHE_PATH || "dist/data/abap-feature-matrix.json",
+  SOFTWARE_HEROES_AFM_CACHE_PATH: process.env.SOFTWARE_HEROES_AFM_CACHE_PATH || path.resolve(PROJECT_ROOT, "dist/data/abap-feature-matrix.json"),
 
   // ---------------------------------------------------------------------------
   // SAP Released Objects Configuration
@@ -65,7 +71,7 @@ export const CONFIG = {
   EMBEDDING_WEIGHT: Number(process.env.EMBEDDING_WEIGHT || 0.7),
 
   // Directory where the embedding model is cached (gitignored, in-project)
-  MODELS_DIR: process.env.MODELS_DIR || "dist/models",
+  MODELS_DIR: process.env.MODELS_DIR || path.resolve(PROJECT_ROOT, "dist/models"),
 
   // Preload the embedding model at startup. Disable this for FTS-only builds
   // where dist/data/docs.sqlite intentionally has no embeddings table.
@@ -79,7 +85,7 @@ export const CONFIG = {
   UI5_LIB_DIFF_CACHE_TTL_MS: Number(process.env.UI5_LIB_DIFF_CACHE_TTL_MS || 86400000),
 
   // Local all-changes bundle consumed by ui5_version_diff at runtime.
-  UI5_LIB_DIFF_BUNDLE_PATH: process.env.UI5_LIB_DIFF_BUNDLE_PATH || "dist/data/ui5-lib-diff/all-changes.json",
+  UI5_LIB_DIFF_BUNDLE_PATH: process.env.UI5_LIB_DIFF_BUNDLE_PATH || path.resolve(PROJECT_ROOT, "dist/data/ui5-lib-diff/all-changes.json"),
 
   // Setup-time source URL for downloading the local all-changes bundle.
   // The runtime tool does not fetch this URL; it only reads UI5_LIB_DIFF_BUNDLE_PATH.

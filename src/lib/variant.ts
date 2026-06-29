@@ -1,5 +1,9 @@
 import fs from "node:fs";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 export interface VariantToolFlags {
   abapLint: boolean;
@@ -32,7 +36,8 @@ export interface VariantConfig {
 
 const DEFAULT_VARIANT = "sap-docs";
 const VARIANT_SELECTOR_FILE = ".mcp-variant";
-const VARIANT_DIR = path.resolve(process.cwd(), "config", "variants");
+const PROJECT_ROOT = path.resolve(__dirname, "..", "..", "..");
+const VARIANT_DIR = path.resolve(PROJECT_ROOT, "config", "variants");
 
 let cachedVariantName: string | null = null;
 let cachedVariantConfig: VariantConfig | null = null;
@@ -44,7 +49,7 @@ function resolveVariantName(): string {
   }
 
   try {
-    const selectorPath = path.resolve(process.cwd(), VARIANT_SELECTOR_FILE);
+    const selectorPath = path.resolve(PROJECT_ROOT, VARIANT_SELECTOR_FILE);
     if (fs.existsSync(selectorPath)) {
       const fileVariant = fs.readFileSync(selectorPath, "utf8").trim();
       if (fileVariant) {

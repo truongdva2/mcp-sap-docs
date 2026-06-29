@@ -327,8 +327,8 @@ async function main() {
   server.keepAliveTimeout = 0;  // Disable keep-alive timeout
   server.headersTimeout = 0;    // Disable headers timeout
   
-  console.log(`📚 MCP Streamable HTTP Server listening on http://${MCP_HOST}:${MCP_PORT}`);
-  console.log(`
+  console.error(`📚 MCP Streamable HTTP Server listening on http://${MCP_HOST}:${MCP_PORT}`);
+  console.error(`
 ==============================================
 MCP STREAMABLE HTTP SERVER
 Protocol version: 2025-07-09

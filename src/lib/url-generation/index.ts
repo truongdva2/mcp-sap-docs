@@ -91,7 +91,7 @@ function createUrlGenerator(libraryId: string, config: DocUrlConfig): BaseUrlGen
   }
   
   // Fallback to generic generator for unknown sources
-  console.log(`Using generic URL generator for unknown library: ${libraryId}`);
+  console.error(`Using generic URL generator for unknown library: ${libraryId}`);
   return new GenericUrlGenerator(libraryId, config);
 }
 

@@ -58,6 +58,8 @@ import { extractLibraryIdFromPath } from "./url-generation/utils.js";
 import { extractSourceUrlFromText, readSourceContentSync } from "./sourceContent.js";
 import { isToolEnabled, getVariantName } from "./variant.js";
 import { searchDiscoveryCenter, getDiscoveryCenterServiceDetails } from "./discoveryCenter/index.js";
+import { searchAcceleratorHub, fetchAcceleratorHubApi } from "./acceleratorHub/index.js";
+import { searchFioriAppLibrary, fetchFioriAppDetails } from "./fioriAppLibrary/index.js";
 
 /**
  * Helper functions for creating structured JSON responses compatible with ChatGPT and all MCP clients
@@ -1146,6 +1148,52 @@ RETURNS (JSON):
               },
               required: ["serviceId"]
             }
+          },
+          {
+            name: "sap_accelerator_hub_search",
+            description: `SEARCH SAP ACCELERATOR HUB: sap_accelerator_hub_search(query="sales order")\n\nSearch for APIs on SAP Accelerator Hub. Returns IDs and summaries.`,
+            inputSchema: {
+              type: "object",
+              properties: {
+                query: { type: "string" },
+                k: { type: "number", default: 50 }
+              },
+              required: ["query"]
+            }
+          },
+          {
+            name: "sap_accelerator_hub_fetch",
+            description: `FETCH SAP ACCELERATOR HUB API: sap_accelerator_hub_fetch(id="sales_order")\n\nFetch metadata details for a specific API from SAP Accelerator Hub.`,
+            inputSchema: {
+              type: "object",
+              properties: {
+                id: { type: "string", description: "API ID (Name) from search results" }
+              },
+              required: ["id"]
+            }
+          },
+          {
+            name: "sap_fiori_library_search",
+            description: `SEARCH SAP FIORI APP REFERENCE LIBRARY: sap_fiori_library_search(query="sales order")\n\nSearch for Fiori Apps.`,
+            inputSchema: {
+              type: "object",
+              properties: {
+                query: { type: "string" },
+                k: { type: "number", default: 50 }
+              },
+              required: ["query"]
+            }
+          },
+          {
+            name: "sap_fiori_library_fetch",
+            description: `FETCH SAP FIORI APP DETAILS: sap_fiori_library_fetch(id="F0110")\n\nFetch details of a specific SAP Fiori App using its ID.`,
+            inputSchema: {
+              type: "object",
+              properties: {
+                id: { type: "string", description: "Fiori App ID (e.g., F0110)" }
+              },
+              required: ["id"]
+            }
           }
         ]
       };
@@ -1201,15 +1249,15 @@ RETURNS (JSON):
         const timing = logger.logToolStart(name, query, clientMetadata);
         
         // DEBUG: Log all input parameters
-        console.log(`\n🔍 [SEARCH TOOL] ========================================`);
-        console.log(`🔍 [SEARCH TOOL] Query: "${query}"`);
-        console.log(`🔍 [SEARCH TOOL] Parameters: k=${resultCount}, includeOnline=${includeOnline}, includeSamples=${includeSamples}, abapFlavor=${abapFlavor}, version=${version || 'latest'}`);
-        console.log(`🔍 [SEARCH TOOL] Sources filter: ${sources ? sources.join(', ') : 'all'}`);
-        console.log(`🔍 [SEARCH TOOL] Request ID: ${timing.requestId}`);
+        console.error(`\n🔍 [SEARCH TOOL] ========================================`);
+        console.error(`🔍 [SEARCH TOOL] Query: "${query}"`);
+        console.error(`🔍 [SEARCH TOOL] Parameters: k=${resultCount}, includeOnline=${includeOnline}, includeSamples=${includeSamples}, abapFlavor=${abapFlavor}, version=${version || 'latest'}`);
+        console.error(`🔍 [SEARCH TOOL] Sources filter: ${sources ? sources.join(', ') : 'all'}`);
+        console.error(`🔍 [SEARCH TOOL] Request ID: ${timing.requestId}`);
         
         try {
           // Use unified search with all parameters
-          console.log(`🔍 [SEARCH TOOL] Calling unified search...`);
+          console.error(`🔍 [SEARCH TOOL] Calling unified search...`);
           const searchStartTime = Date.now();
           
           const results = await search(query, {
@@ -1223,12 +1271,12 @@ RETURNS (JSON):
           });
           
           const searchDuration = Date.now() - searchStartTime;
-          console.log(`🔍 [SEARCH TOOL] Search completed in ${searchDuration}ms`);
+          console.error(`🔍 [SEARCH TOOL] Search completed in ${searchDuration}ms`);
           
           const topResults = results;
           
           // DEBUG: Log result summary
-          console.log(`🔍 [SEARCH TOOL] Results returned: ${topResults.length}`);
+          console.error(`🔍 [SEARCH TOOL] Results returned: ${topResults.length}`);
           if (topResults.length > 0) {
             // Count by sourceKind
             const sourceKindCounts: Record<string, number> = {};
@@ -1236,17 +1284,17 @@ RETURNS (JSON):
               const kind = r.sourceKind || 'unknown';
               sourceKindCounts[kind] = (sourceKindCounts[kind] || 0) + 1;
             });
-            console.log(`🔍 [SEARCH TOOL] By sourceKind: ${JSON.stringify(sourceKindCounts)}`);
+            console.error(`🔍 [SEARCH TOOL] By sourceKind: ${JSON.stringify(sourceKindCounts)}`);
             
             // Log top 3 results for quick inspection
-            console.log(`🔍 [SEARCH TOOL] Top 3 results:`);
+            console.error(`🔍 [SEARCH TOOL] Top 3 results:`);
             topResults.slice(0, 3).forEach((r, i) => {
-              console.log(`   ${i+1}. [${r.sourceKind}] score=${r.finalScore?.toFixed(4)} id=${r.id.substring(0, 60)}...`);
+              console.error(`   ${i+1}. [${r.sourceKind}] score=${r.finalScore?.toFixed(4)} id=${r.id.substring(0, 60)}...`);
             });
           }
           
           if (topResults.length === 0) {
-            console.log(`⚠️ [SEARCH TOOL] No results found for query: "${query}"`);
+            console.error(`⚠️ [SEARCH TOOL] No results found for query: "${query}"`);
             logger.logToolSuccess(name, timing.requestId, timing.startTime, 0, { fallback: false });
             return createEmptySearchResponse(
               `No results for "${query}". Try ABAP keywords ("SELECT", "LOOP", "RAP"), add "cloud" for ABAP Cloud syntax, or be more specific.`,
@@ -1296,8 +1344,8 @@ RETURNS (JSON):
           });
           
           // DEBUG: Log output summary
-          console.log(`🔍 [SEARCH TOOL] Returning ${searchResults.length} formatted results`);
-          console.log(`🔍 [SEARCH TOOL] ========================================\n`);
+          console.error(`🔍 [SEARCH TOOL] Returning ${searchResults.length} formatted results`);
+          console.error(`🔍 [SEARCH TOOL] ========================================\n`);
           
           return createSearchResponse(searchResults);
         } catch (error) {
@@ -1573,11 +1621,11 @@ RETURNS (JSON):
 
         // Log cache stats for debugging
         const cacheStats = getFeatureMatrixCacheStats();
-        console.log(`\n🔍 [ABAP_FEATURE_MATRIX] ========================================`);
-        console.log(`🔍 [ABAP_FEATURE_MATRIX] Query: "${searchQuery || '(all features)'}"`);
-        console.log(`🔍 [ABAP_FEATURE_MATRIX] Limit: ${limit || 'all'}`);
-        console.log(`🔍 [ABAP_FEATURE_MATRIX] Cache: ${cacheStats.size} entries, TTL=${cacheStats.ttlHours}h`);
-        console.log(`🔍 [ABAP_FEATURE_MATRIX] Request ID: ${timing.requestId}`);
+        console.error(`\n🔍 [ABAP_FEATURE_MATRIX] ========================================`);
+        console.error(`🔍 [ABAP_FEATURE_MATRIX] Query: "${searchQuery || '(all features)'}"`);
+        console.error(`🔍 [ABAP_FEATURE_MATRIX] Limit: ${limit || 'all'}`);
+        console.error(`🔍 [ABAP_FEATURE_MATRIX] Cache: ${cacheStats.size} entries, TTL=${cacheStats.ttlHours}h`);
+        console.error(`🔍 [ABAP_FEATURE_MATRIX] Request ID: ${timing.requestId}`);
 
         try {
           const searchStartTime = Date.now();
@@ -1588,13 +1636,13 @@ RETURNS (JSON):
           });
 
           const searchDuration = Date.now() - searchStartTime;
-          console.log(`🔍 [ABAP_FEATURE_MATRIX] Search completed in ${searchDuration}ms`);
-          console.log(`🔍 [ABAP_FEATURE_MATRIX] Matches found: ${result.matches.length} of ${result.meta.totalFeatures} total features`);
+          console.error(`🔍 [ABAP_FEATURE_MATRIX] Search completed in ${searchDuration}ms`);
+          console.error(`🔍 [ABAP_FEATURE_MATRIX] Matches found: ${result.matches.length} of ${result.meta.totalFeatures} total features`);
 
           if (result.matches.length > 0) {
-            console.log(`🔍 [ABAP_FEATURE_MATRIX] Top 3 matches:`);
+            console.error(`🔍 [ABAP_FEATURE_MATRIX] Top 3 matches:`);
             result.matches.slice(0, 3).forEach((m, i) => {
-              console.log(`   ${i + 1}. [${m.section}] "${m.feature}" (score=${m.score})`);
+              console.error(`   ${i + 1}. [${m.section}] "${m.feature}" (score=${m.score})`);
             });
           }
 
@@ -1604,7 +1652,7 @@ RETURNS (JSON):
             sections: result.meta.sections,
           });
 
-          console.log(`🔍 [ABAP_FEATURE_MATRIX] ========================================\n`);
+          console.error(`🔍 [ABAP_FEATURE_MATRIX] ========================================\n`);
 
           // Return structured JSON response
           return {
@@ -1673,12 +1721,12 @@ RETURNS (JSON):
         }
 
         const cacheStats = getUi5LibDiffCacheStats();
-        console.log(`\n🔍 [UI5_VERSION_DIFF] ========================================`);
-        console.log(`🔍 [UI5_VERSION_DIFF] Library: ${library ?? "SAPUI5"}`);
-        console.log(`🔍 [UI5_VERSION_DIFF] Range: ${version ?? `${from_version ?? "?"} -> ${to_version ?? "?"}`}`);
-        console.log(`🔍 [UI5_VERSION_DIFF] Types: ${Array.isArray(types) ? types.join(",") : "ALL"}`);
-        console.log(`🔍 [UI5_VERSION_DIFF] ui5_library filter: ${ui5_library ?? "(none)"}, query: ${query ?? "(none)"}`);
-        console.log(`🔍 [UI5_VERSION_DIFF] Cache: ${JSON.stringify(cacheStats)}`);
+        console.error(`\n🔍 [UI5_VERSION_DIFF] ========================================`);
+        console.error(`🔍 [UI5_VERSION_DIFF] Library: ${library ?? "SAPUI5"}`);
+        console.error(`🔍 [UI5_VERSION_DIFF] Range: ${version ?? `${from_version ?? "?"} -> ${to_version ?? "?"}`}`);
+        console.error(`🔍 [UI5_VERSION_DIFF] Types: ${Array.isArray(types) ? types.join(",") : "ALL"}`);
+        console.error(`🔍 [UI5_VERSION_DIFF] ui5_library filter: ${ui5_library ?? "(none)"}, query: ${query ?? "(none)"}`);
+        console.error(`🔍 [UI5_VERSION_DIFF] Cache: ${JSON.stringify(cacheStats)}`);
 
         try {
           const result: Ui5VersionDiffResult = await getUi5VersionDiff({
@@ -1691,10 +1739,10 @@ RETURNS (JSON):
             query,
           });
 
-          console.log(
+          console.error(
             `🔍 [UI5_VERSION_DIFF] versions=${result.versionsInRange.length} total=${result.totalEntries} returned=${result.entries.length} whatsNew=${result.whatsNewTotalEntries}`
           );
-          console.log(`🔍 [UI5_VERSION_DIFF] ========================================\n`);
+          console.error(`🔍 [UI5_VERSION_DIFF] ========================================\n`);
 
           logger.logToolSuccess(name, timing.requestId, timing.startTime, result.entries.length, {
             totalEntries: result.totalEntries,
@@ -1874,6 +1922,68 @@ RETURNS (JSON):
         } catch (error) {
           logger.logToolError(name, timing.requestId, timing.startTime, error);
           return createErrorResponse(`Error fetching service details from Discovery Center: ${error}`, timing.requestId);
+        }
+      }
+
+      if (name === "sap_accelerator_hub_search") {
+        const { query, k } = args as { query: string; k?: number };
+        const timing = logger.logToolStart(name, query, clientMetadata);
+        try {
+          const results = await searchAcceleratorHub({ query, top: k });
+          logger.logToolSuccess(name, timing.requestId, timing.startTime, results.length);
+          return createSearchResponse(results);
+        } catch (error) {
+          logger.logToolError(name, timing.requestId, timing.startTime, error);
+          return createEmptySearchResponse(`Error searching Accelerator Hub: ${error}`, timing.requestId);
+        }
+      }
+
+      if (name === "sap_accelerator_hub_fetch") {
+        const { id } = args as { id: string };
+        const timing = logger.logToolStart(name, id, clientMetadata);
+        try {
+          const content = await fetchAcceleratorHubApi(id);
+          logger.logToolSuccess(name, timing.requestId, timing.startTime, 1);
+          return createDocumentResponse({
+            id,
+            title: `Accelerator Hub API: ${id}`,
+            text: content,
+            url: `https://api.sap.com/api/${id}`
+          });
+        } catch (error) {
+          logger.logToolError(name, timing.requestId, timing.startTime, error);
+          return createErrorResponse(`Error fetching Accelerator Hub API: ${error}`, timing.requestId);
+        }
+      }
+
+      if (name === "sap_fiori_library_search") {
+        const { query, k } = args as { query: string; k?: number };
+        const timing = logger.logToolStart(name, query, clientMetadata);
+        try {
+          const results = await searchFioriAppLibrary({ query, top: k });
+          logger.logToolSuccess(name, timing.requestId, timing.startTime, results.length);
+          return createSearchResponse(results);
+        } catch (error) {
+          logger.logToolError(name, timing.requestId, timing.startTime, error);
+          return createEmptySearchResponse(`Error searching Fiori App Library: ${error}`, timing.requestId);
+        }
+      }
+
+      if (name === "sap_fiori_library_fetch") {
+        const { id } = args as { id: string };
+        const timing = logger.logToolStart(name, id, clientMetadata);
+        try {
+          const content = await fetchFioriAppDetails(id);
+          logger.logToolSuccess(name, timing.requestId, timing.startTime, 1);
+          return createDocumentResponse({
+            id,
+            title: `Fiori App: ${id}`,
+            text: content,
+            url: `https://fioriappslibrary.hana.ondemand.com/sap/fix/externalViewer/#/detail/Apps('${id}')/S30`
+          });
+        } catch (error) {
+          logger.logToolError(name, timing.requestId, timing.startTime, error);
+          return createErrorResponse(`Error fetching Fiori App details: ${error}`, timing.requestId);
         }
       }
 

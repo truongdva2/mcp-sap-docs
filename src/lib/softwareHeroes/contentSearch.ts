@@ -262,7 +262,7 @@ export async function searchSoftwareHeroesContent(
       source: "software-heroes",
     }));
 
-    console.log(
+    console.error(
       `✅ [SoftwareHeroes] Found ${results.length} content results for "${query}"`
     );
 
