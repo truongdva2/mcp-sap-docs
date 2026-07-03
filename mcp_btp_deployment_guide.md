@@ -74,16 +74,22 @@ cf push -f manifest-extend.yml
 
 Không nên (và không cần thiết) phải nhúng Hardcode các API Key (như Accelerator Hub Key) vào phía Server trên BTP. MCP cho phép Client đẩy Header bảo mật lên Server.
 
-Trong file `mcp_config.json` ở dưới máy tính Local (Client) của từng User, hãy cấu hình tham số `--header`:
+Để đảm bảo **hoạt động ổn định 100% trên mọi thiết bị** (tránh lỗi xung đột phiên bản Node.js cũ v18/v20 hoặc lỗi kết nối mạng của `npx`), khuyến nghị cấu hình theo một trong hai cách dưới đây:
+
+### Yêu cầu đối với thiết bị Client:
+1. **Node.js**: Phải cài đặt Node.js phiên bản v18 trở lên.
+2. **Kết nối mạng**: Cho phép truy cập internet để gọi API và kết nối tới URL BTP.
+
+### Cách 1: Khóa cứng phiên bản bằng npx (Khuyên dùng - Đơn giản nhất)
+Sử dụng `supergateway@2.0.0` và tham số `--sse` thay thế cho cấu hình cũ:
 
 ```json
 "sap-docs-extend-mcp": {
   "command": "npx",
   "args": [
     "-y",
-    "@modelcontextprotocol/supergateway",
-    "--stdio",
-    "--url",
+    "supergateway@2.0.0",
+    "--sse",
     "https://sap-docs-extend-mcp.cfapps.ap21.hana.ondemand.com/sse",
     "--header",
     "SAP-API-HUB-KEY: <ĐIỀN_API_KEY_CỦA_TỪNG_USER_VÀO_ĐÂY>"
@@ -92,6 +98,27 @@ Trong file `mcp_config.json` ở dưới máy tính Local (Client) của từng 
   "autoApprove": []
 }
 ```
+
+### Cách 2: Cài đặt toàn cục (Cực kỳ ổn định & Tránh lỗi Proxy/Firewall)
+1. Cài đặt `supergateway` lên máy khách một lần duy nhất:
+   ```bash
+   npm install -g supergateway@2.0.0
+   ```
+2. Cấu hình IDE sử dụng trực tiếp:
+   ```json
+   "sap-docs-extend-mcp": {
+     "command": "supergateway",
+     "args": [
+       "--sse",
+       "https://sap-docs-extend-mcp.cfapps.ap21.hana.ondemand.com/sse",
+       "--header",
+       "SAP-API-HUB-KEY: <ĐIỀN_API_KEY_CỦA_TỪNG_USER_VÀO_ĐÂY>"
+     ],
+     "disabled": false,
+     "autoApprove": []
+   }
+   ```
+   *(Lưu ý trên Windows: Nếu IDE không tìm thấy lệnh `supergateway`, hãy dùng `supergateway.cmd` hoặc điền đường dẫn tuyệt đối).*
 
 ### Các Lỗi Đã Được Khắc Phục Ở Source Code (Để Tham Khảo)
 Nếu bạn lấy Source code từ bản gốc trên Github, lưu ý 2 lỗi nghiêm trọng sau đã được fix trong nhánh này:

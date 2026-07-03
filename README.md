@@ -69,7 +69,27 @@ mcp-sap-docs/
 └── manifest-extend.yml # Cloud Foundry deployment descriptor
 ```
 
+## Prerequisites
+
+Before configuring your client, ensure your local machine meets the following requirements:
+
+1. **Node.js**: Must be installed (minimum version **Node.js v18** or above). Verify by running `node -v` in your terminal.
+2. **Network Connectivity**:
+   - Outbound HTTPS access to the hosted server: `https://sap-docs-extend-mcp.cfapps.ap21.hana.ondemand.com`
+   - Access to `registry.npmjs.org` to fetch `supergateway`. If your machine is behind a corporate firewall/VPN/proxy that blocks npm registry downloads, you **must** use the global installation method (**Option 2** below).
+3. **Compatible IDE**: An IDE supporting MCP (e.g. Cursor, Claude Desktop, VS Code, Gemini IDE).
+
+---
+
 ## ⚙️ MCP Configuration (Client IDE)
+
+To ensure **100% stability across all devices** (preventing version mismatch or Node.js v18 compatibility issues), use one of the two configurations below:
+
+### Option 1: Lock Version with npx (Recommended & Easiest)
+
+Locks the `supergateway` version to `2.0.0` and uses the correct `--sse` argument to connect. This works on all devices with Node.js v18 or above.
+
+Add this block to your `mcpServers` configuration file (e.g., `claude_desktop_config.json` or `mcp_config.json`):
 
 ```json
 {
@@ -78,9 +98,8 @@ mcp-sap-docs/
       "command": "npx",
       "args": [
         "-y",
-        "@modelcontextprotocol/supergateway",
-        "--stdio",
-        "--url",
+        "supergateway@2.0.0",
+        "--sse",
         "https://sap-docs-extend-mcp.cfapps.ap21.hana.ondemand.com/sse",
         "--header",
         "SAP-API-HUB-KEY: <YOUR_API_KEY_HERE>" 
@@ -90,6 +109,35 @@ mcp-sap-docs/
   }
 }
 ```
+
+### Option 2: Global Installation (Offline & Network-Resilient)
+
+Best for enterprise environments behind corporate firewalls, VPNs, or proxy servers where running `npx` dynamically on every IDE startup might fail or time out.
+
+1. Install `supergateway` globally on your machine once:
+   ```bash
+   npm install -g supergateway@2.0.0
+   ```
+
+2. Update your IDE's `mcpServers` configuration to use the globally installed tool directly:
+   ```json
+   {
+     "mcpServers": {
+       "mcp-sap-docs-btp": {
+         "command": "supergateway",
+         "args": [
+           "--sse",
+           "https://sap-docs-extend-mcp.cfapps.ap21.hana.ondemand.com/sse",
+           "--header",
+           "SAP-API-HUB-KEY: <YOUR_API_KEY_HERE>" 
+         ],
+         "disabled": false
+       }
+     }
+   }
+   ```
+   *(Note for Windows users: If your IDE cannot locate the global command, use `supergateway.cmd` as the command, or specify the absolute path to your global `npm` prefix).*
+
 *(Note: `SAP-API-HUB-KEY` is **optional**. If omitted, the `sap_accelerator_hub_*` tools will be restricted from fetching API data, but all other tools like Offline Search, Fiori Library, and Clean Core Objects will still work normally.)*
 
 ## 🔗 References
